@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Job;
 use App\Models\Category;
 use App\Models\JobType;
+use App\Models\JobApplication;
 use Validator;
 use Auth;
 
@@ -31,17 +32,17 @@ class AccountController extends Controller
             $user = new User();
 
 
-$user = new User();
-$user->name = $request->name;
-$user->email = $request->email;
-$user->password = Hash::make($request->password);
-$user->save();
-session()->flash('success', 'You have registered successfully.');
+            $user = new User();
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->save();
+            session()->flash('success', 'You have registered successfully.');
             return response()->json([
                 'status' => true,
                 'errors' => []
             ]);
-            
+
         } else {
             return response()->json([
                 'status' => false,
@@ -55,173 +56,193 @@ session()->flash('success', 'You have registered successfully.');
         return view('front.account.login');
     }
 
-    public function authenticate(Request $request) {
+    public function authenticate(Request $request)
+    {
         $validator = Validator::make($request->all(), [
-    'email' => 'required|email',
-    'password' => 'required',
-]);
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-if ($validator->passes()) {
-    if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
-    return redirect()->route('account.profile');
-} else {
-    return redirect()->route('account.login')
-        ->with('error', 'Either Email/Password is incorrect');
-}
-} else {
-    return redirect()->route('account.login')
-    ->withErrors($validator)
-    ->withInput($request->only('email'));
-}
-}
-public function profile() {
-    
-    $id = Auth::user()->id;
+        if ($validator->passes()) {
+            if (Auth::attempt(['email' => $request->email, 'password' => $request->password])) {
+                return redirect()->route('account.profile');
+            } else {
+                return redirect()->route('account.login')
+                    ->with('error', 'Either Email/Password is incorrect');
+            }
+        } else {
+            return redirect()->route('account.login')
+                ->withErrors($validator)
+                ->withInput($request->only('email'));
+        }
+    }
+    public function profile()
+    {
 
-    $user = User::where('id', $id)->first();
+        $id = Auth::user()->id;
 
-    return view('front.account.profile', [
-        'user' => $user
-    ]);
-}
+        $user = User::where('id', $id)->first();
 
-public function updateProfile(Request $request) {
+        return view('front.account.profile', [
+            'user' => $user
+        ]);
+    }
 
-    $id = Auth::user()->id;
+    public function updateProfile(Request $request)
+    {
 
-    $validator = Validator::make($request->all(), [
-        'name' => 'required|min:5|max:20',
-        'email' => 'required|email|unique:users,email,' . $id . ',id'
-    ]);
+        $id = Auth::user()->id;
 
-    if ($validator->passes()) {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|min:5|max:20',
+            'email' => 'required|email|unique:users,email,' . $id . ',id'
+        ]);
 
-    $user = User::find($id);
-    $user->name = $request->name;
-    $user->email = $request->email;
-    $user->mobile = $request->mobile;
-    $user->designation = $request->designation;
-    $user->save();
+        if ($validator->passes()) {
 
-    session()->flash('success', 'Profile updated successfully.');
+            $user = User::find($id);
+            $user->name = $request->name;
+            $user->email = $request->email;
+            $user->mobile = $request->mobile;
+            $user->designation = $request->designation;
+            $user->save();
 
-    return response()->json([
-        'status' => true,
-        'errors' => []
-    ]);
+            session()->flash('success', 'Profile updated successfully.');
 
-} else {
+            return response()->json([
+                'status' => true,
+                'errors' => []
+            ]);
 
-    return response()->json([
-        'status' => false,
-        'errors' => $validator->errors()
-    ]);
+        } else {
 
-}
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
 
-}
+        }
 
-public function logout() {
-    Auth::logout();
-    return redirect()->route('account.login');
-}
-public function updateProfilePic(Request $request) {
-    // dd($request->all());
-$id = Auth::user()->id;
+    }
 
-$validator = Validator::make($request->all(), [
-    'image' => 'required|image'
-]);
+    public function logout()
+    {
+        Auth::logout();
+        return redirect()->route('account.login');
+    }
+    public function updateProfilePic(Request $request)
+    {
+        // dd($request->all());
+        $id = Auth::user()->id;
 
-if ($validator->passes()) {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image'
+        ]);
 
-    $image = $request->image;
-    $ext = $image->getClientOriginalExtension();
-    $imageName = $id . '-' . time() . '.' . $ext;
-    $image->move(public_path('/profile_pic/'), $imageName);
+        if ($validator->passes()) {
 
-    User::where('id', $id)->update(['image' => $imageName]);
+            $image = $request->image;
+            $ext = $image->getClientOriginalExtension();
+            $imageName = $id . '-' . time() . '.' . $ext;
+            $image->move(public_path('/profile_pic/'), $imageName);
 
-    session()->flash('success', 'Profile picture updated successfully.');
+            User::where('id', $id)->update(['image' => $imageName]);
 
-    return response()->json([
-        'status' => true,
-        'errors' => []
-    ]);
+            session()->flash('success', 'Profile picture updated successfully.');
 
-} else {
-    return response()->json([
-        'status' => false,
-        'errors' => $validator->errors()
-    ]);
-}
-}
-public function createJob(){
-    $categories = Category::orderBy('name', 'ASC')->where('status', 1)->get();
-$jobTypes = JobType::orderBy('name', 'ASC')->where('status', 1)->get();
+            return response()->json([
+                'status' => true,
+                'errors' => []
+            ]);
 
-return view('front.account.job.create', [
-    'categories' => $categories,
-    'job_types' => $jobTypes
-]);
-}
+        } else {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
+    }
+    public function createJob()
+    {
+        $categories = Category::orderBy('name', 'ASC')->where('status', 1)->get();
+        $jobTypes = JobType::orderBy('name', 'ASC')->where('status', 1)->get();
 
-public function saveJob(Request $request) {
+        return view('front.account.job.create', [
+            'categories' => $categories,
+            'job_types' => $jobTypes
+        ]);
+    }
 
-$rules = [
-    'title' => 'required|min:5|max:200',
-    'category' => 'required',
-    'jobType' => 'required',
-    'vacancy' => 'required|integer',
-    'location' => 'required|max:50',
-    'description' => 'required',
-    'company_name' => 'required|min:3|max:75',
-];
+    public function saveJob(Request $request)
+    {
 
-$validator = Validator::make($request->all(), $rules);
+        $rules = [
+            'title' => 'required|min:5|max:200',
+            'category' => 'required',
+            'jobType' => 'required',
+            'vacancy' => 'required|integer',
+            'location' => 'required|max:50',
+            'description' => 'required',
+            'company_name' => 'required|min:3|max:75',
+        ];
 
-if ($validator->passes()) {
-    $job = new Job();
-$job->title = $request->title;
-$job->category_id = $request->category;
-$job->job_type_id = $request->jobType;
-$job->user_id = Auth::user()->id;
-$job->vacancy = $request->vacancy;
-$job->salary = $request->salary;
-$job->location = $request->location;
-$job->description = $request->description;
-$job->benefits = $request->benefits;
-$job->responsibility = $request->responsibility;
-$job->qualifications = $request->qualifications;
-$job->keywords = $request->keywords;
-$job->experience = $request->experience;
-$job->company_name = $request->company_name;
-$job->company_location = $request->company_location;
-$job->company_website = $request->website;
-$job->save();
-session()->flash('success', 'Job added successfully.');
+        $validator = Validator::make($request->all(), $rules);
 
-return response()->json([
-    'status' => true,
-    'errors' => []
-]);
+        if ($validator->passes()) {
+            $job = new Job();
+            $job->title = $request->title;
+            $job->category_id = $request->category;
+            $job->job_type_id = $request->jobType;
+            $job->user_id = Auth::user()->id;
+            $job->vacancy = $request->vacancy;
+            $job->salary = $request->salary;
+            $job->location = $request->location;
+            $job->description = $request->description;
+            $job->benefits = $request->benefits;
+            $job->responsibility = $request->responsibility;
+            $job->qualifications = $request->qualifications;
+            $job->keywords = $request->keywords;
+            $job->experience = $request->experience;
+            $job->company_name = $request->company_name;
+            $job->company_location = $request->company_location;
+            $job->company_website = $request->website;
+            $job->save();
+            session()->flash('success', 'Job added successfully.');
+
+            return response()->json([
+                'status' => true,
+                'errors' => []
+            ]);
 
 
-} else {
-    return response()->json([
-        'status' => false,
-        'errors' => $validator->errors()
-    ]);
-}
+        } else {
+            return response()->json([
+                'status' => false,
+                'errors' => $validator->errors()
+            ]);
+        }
 
-}
-public function myJobs() {
-  $jobs = Job::where('user_id', Auth::user()->id)->with('jobType')->paginate(10);
+    }
+    public function myJobs()
+    {
+        $jobs = Job::where('user_id', Auth::user()->id)->with('jobType')->paginate(10);
 
- //dd($jobs);
+        //dd($jobs);
 
-return view('front.account.job.my-jobs', [
-    'jobs' => $jobs
-]);
-}
+        return view('front.account.job.my-jobs', [
+            'jobs' => $jobs
+        ]);
+    }
+
+    public function appliedJobs()
+    {
+        $jobApplications = JobApplication::where('user_id', Auth::user()->id)
+                            ->with(['job', 'job.jobType'])
+                            ->orderBy('created_at', 'DESC')
+                            ->paginate(10);
+
+        return view('front.account.job.applied-jobs', [
+            'jobApplications' => $jobApplications
+        ]);
+    }
 }

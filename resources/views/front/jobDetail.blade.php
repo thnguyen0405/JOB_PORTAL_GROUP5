@@ -56,7 +56,7 @@
                         @endif
                         <div class="pt-3 text-end mt-5">
                             <a href="#" class="btn btn-secondary px-4 me-2">Save</a>
-                            <a href="#" class="btn btn-primary px-4">Apply</a>
+                            <a href="#" onclick="applyJob({{ $job->id }})" class="btn btn-primary px-4">Apply</a>
                         </div>
                     </div>
                 </div>
@@ -102,4 +102,26 @@
         </div>
     </div>
 </section>
+@endsection
+
+@section('customJs')
+<script>
+function applyJob(id) {
+    if (confirm("Are you sure you want to apply for this job?")) {
+        $.ajax({
+            url: '{{ route("applyJob") }}',
+            type: 'post',
+            data: { id: id },
+            dataType: 'json',
+            success: function(response) {
+                if (response.status) {
+                    alert(response.message);
+                } else {
+                    alert(response.message);
+                }
+            }
+        });
+    }
+}
+</script>
 @endsection

@@ -6,8 +6,9 @@ use App\Http\Controllers\AccountController;
 use App\Http\Controllers\JobsController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/jobs', [JobsController::class, 'index'])->name('jobs');
 Route::get('/job/{id}', [JobsController::class, 'detail'])->name('jobDetail');
-
+Route::post('/apply-job', [JobsController::class, 'applyJob'])->name('applyJob');
 Route::prefix('account')->name('account.')->group(function () {
 
     Route::middleware('guest')->group(function () {
@@ -25,6 +26,7 @@ Route::prefix('account')->name('account.')->group(function () {
         Route::get('create-job', [AccountController::class, 'createJob'])->name('createJob');
         Route::post('save-job', [AccountController::class, 'saveJob'])->name('saveJob');
         Route::get('/my-jobs', [AccountController::class, 'myJobs'])->name('myJobs');
+        Route::get('/applied-jobs', [AccountController::class, 'appliedJobs'])->name('appliedJobs');
 
     });
 
