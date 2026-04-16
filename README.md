@@ -1,4 +1,5 @@
---Internal note--
+--Internal note--\n
+cant get xampp sql to work with php 8.5.5 so used sql workbench for db server hosting and db inspection, remember to add name,pw,etc in .env file
 This branch implement:
 - remove the redundent login button, fix home button
 - finish "post a job" page
