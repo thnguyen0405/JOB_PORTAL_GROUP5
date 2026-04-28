@@ -72,6 +72,14 @@
                href="{{ route('admin.users') }}">
                 <i class="fas fa-users me-2"></i> Users
             </a>
+            <a class="nav-link {{ request()->routeIs('admin.jobs*') ? 'active' : '' }}"
+               href="{{ route('admin.jobs') }}">
+                <i class="fas fa-briefcase me-2"></i> Jobs
+            </a>
+            <a class="nav-link {{ request()->routeIs('admin.jobApplications*') ? 'active' : '' }}"
+               href="{{ route('admin.jobApplications') }}">
+                <i class="fas fa-file-alt me-2"></i> Job Applications
+            </a>
         </nav>
     </div>
 

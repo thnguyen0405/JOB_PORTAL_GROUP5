@@ -6,6 +6,8 @@ use App\Http\Controllers\JobsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\JobController;
+use App\Http\Controllers\Admin\JobApplicationController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [JobsController::class, 'index'])->name('jobs');
@@ -48,11 +50,22 @@ Route::prefix('account')->name('account.')->group(function () {
 
 // Video 25, 26, 27: Admin Routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'isAdmin'])->group(function () {
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Video 26 & 27: Users
+    // Users
     Route::get('/users', [UserController::class, 'index'])->name('users');
     Route::get('/users/{id}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::post('/users/{id}/update', [UserController::class, 'update'])->name('users.update');
     Route::post('/users/{id}/delete', [UserController::class, 'destroy'])->name('users.delete');
+
+    // Jobs
+    Route::get('/jobs', [JobController::class, 'index'])->name('jobs');
+    Route::get('/jobs/edit/{id}', [JobController::class, 'edit'])->name('jobs.edit');
+    Route::post('/jobs/{id}', [JobController::class, 'update'])->name('jobs.update');
+    Route::post('/jobs/delete/{id}', [JobController::class, 'destroy'])->name('jobs.delete');
+
+    // Job Applications
+    Route::get('/job-applications', [JobApplicationController::class, 'index'])->name('jobApplications');
+    Route::post('/job-applications/delete/{id}', [JobApplicationController::class, 'destroy'])->name('jobApplications.delete');
 });
