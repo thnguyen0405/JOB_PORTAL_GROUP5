@@ -58,7 +58,7 @@
                             <h4 class="pb-2">{{ $category->name }}</h4>
                         </a>
                         <p class="mb-0">
-                            <span>0</span> Available position
+                            <span>{{ $category->jobs_count }}</span> Available position{{ $category->jobs_count == 1 ? '' : 's' }}
                         </p>
                     </div>
                 </div>

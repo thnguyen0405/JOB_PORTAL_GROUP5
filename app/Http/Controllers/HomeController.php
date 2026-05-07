@@ -12,6 +12,9 @@ class HomeController extends Controller
     public function index(Request $request) {
 
         $categories = Category::where('status', 1)
+            ->withCount(['jobs' => function ($query) {
+                $query->where('status', 1);
+            }])
             ->orderBy('name', 'ASC')
             ->take(8)
             ->get();
