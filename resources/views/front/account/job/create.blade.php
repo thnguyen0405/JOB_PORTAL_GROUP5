@@ -205,9 +205,40 @@
                                     <p></p>
                                 </div>
 
-                                <div class="col-md-6 mb-4">
-                                    <label class="mb-2">Company Location</label>
-                                    <input type="text" placeholder="Company Location" id="company_location" name="company_location" class="form-control">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4 mb-4">
+                                    <label class="mb-2">Company Country <span class="req">*</span></label>
+                                    <select name="company_country_id" id="company_country_id" class="form-control">
+                                        <option value="">Select Country</option>
+                                        @foreach(($countries ?? collect()) as $country)
+                                            <option value="{{ $country->id }}">{{ $country->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p></p>
+                                </div>
+
+                                <div class="col-md-4 mb-4">
+                                    <label class="mb-2">Company City <span class="req">*</span></label>
+                                    <select name="company_city_id" id="company_city_id" class="form-control">
+                                        <option value="">Select City</option>
+                                        @foreach(($cities ?? collect()) as $city)
+                                            <option value="{{ $city->id }}">{{ $city->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p></p>
+                                </div>
+
+                                <div class="col-md-4 mb-4">
+                                    <label class="mb-2">Company District</label>
+                                    <select name="company_district_id" id="company_district_id" class="form-control">
+                                        <option value="">Select District</option>
+                                        @foreach(($districts ?? collect()) as $district)
+                                            <option value="{{ $district->id }}">{{ $district->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <p></p>
                                 </div>
                             </div>
 
@@ -265,7 +296,10 @@ $(document).ready(function () {
             'work_arrangement',
             'description',
             'experience',
-            'company_name'
+            'company_name',
+            'company_country_id',
+            'company_city_id',
+            'company_district_id'
         ];
 
         fields.forEach(function(field) {
@@ -287,7 +321,10 @@ $(document).ready(function () {
             'work_arrangement',
             'description',
             'experience',
-            'company_name'
+            'company_name',
+            'company_country_id',
+            'company_city_id',
+            'company_district_id'
         ];
 
         fields.forEach(function(field) {

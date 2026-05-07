@@ -204,6 +204,9 @@ class AccountController extends Controller
 
     'description' => 'required',
     'company_name' => 'required|min:3|max:75',
+    'company_country_id' => 'required|exists:countries,id',
+    'company_city_id' => 'required|exists:cities,id',
+    'company_district_id' => 'nullable|exists:districts,id',
 ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -237,7 +240,15 @@ $job->location = trim(
             $job->keywords = $request->keywords;
             $job->experience = $request->experience;
             $job->company_name = $request->company_name;
-            $job->company_location = $request->company_location;
+            $job->company_country_id = $request->company_country_id;
+            $job->company_city_id = $request->company_city_id;
+            $job->company_district_id = $request->company_district_id;
+            
+            $job->company_location = trim(
+                ($request->company_district_id ? optional(District::find($request->company_district_id))->name . ', ' : '') .
+                optional(City::find($request->company_city_id))->name . ', ' .
+                optional(Country::find($request->company_country_id))->name
+            );
             $job->company_website = $request->company_website;
             $job->save();
 
