@@ -141,6 +141,11 @@ class DemoDataSeeder extends Seeder
 
         foreach ($jobsPerEmployer as $empIdx => $jobs) {
             foreach ($jobs as $j) {
+                // Skip if this exact job title already exists for this employer
+                if (DB::table('jobs')->where('title', $j['title'])->where('user_id', $employerIds[$empIdx])->exists()) {
+                    continue;
+                }
+
                 DB::table('jobs')->insert([
                     'title'              => $j['title'],
                     'category_id'        => $categoryIds[$j['category_idx']],
@@ -166,7 +171,7 @@ class DemoDataSeeder extends Seeder
                     'company_district_id'=> $districtIds[0],
                     'company_website'    => 'https://example.com',
                     'status'             => 1,
-                    'isFeatured'         => ($empIdx === 0) ? 1 : 0, // TechVision jobs are featured
+                    'isFeatured'         => ($empIdx === 0) ? 1 : 0,
                     'created_at'         => now(),
                     'updated_at'         => now(),
                 ]);
@@ -190,8 +195,173 @@ class DemoDataSeeder extends Seeder
             }
         }
 
+        // ── 7. Collect seeder users & reference IDs ───────────────────────────
+        $seekerEmails = ['alice@demo.com', 'bob@demo.com', 'carol@demo.com'];
+        $seekerIds    = DB::table('users')->whereIn('email', $seekerEmails)->pluck('id')->toArray();
+
+        $cvCategoryId       = DB::table('cv_categories')->first()->id;
+        $institutionId      = DB::table('institutions')->first()->id;
+        $degreeLevelId      = DB::table('degree_levels')->where('name', 'Bachelor')->first()->id;
+        $majorId            = DB::table('majors')->first()->id;
+        $industryId         = DB::table('industries')->first()->id;
+        $certNameId         = DB::table('certificate_names')->first()->id;
+        $issuingOrgId       = DB::table('issuing_organizations')->first()->id;
+        $skillIds           = DB::table('skills')->pluck('id')->toArray();
+        $proficiencyLevelId = DB::table('proficiency_levels')->where('name', 'Intermediate')->first()->id;
+        $jobTypeId          = $jobTypeIds[0]; // Full Time
+
+        $seekerProfiles = [
+            [
+                'full_name'    => 'Alice Nguyen',
+                'gender'       => 'Female',
+                'dob'          => '1999-03-15',
+                'phone'        => '0901234567',
+                'street'       => '12 Nguyen Hue',
+                'postal'       => '700000',
+                'summary'      => 'Passionate software developer with 2 years of experience in web development using PHP and Laravel.',
+                'skills'       => [0, 1, 2], // PHP, Laravel, JavaScript
+                'work_title'   => 'Junior PHP Developer',
+                'work_company' => 'Startup X',
+            ],
+            [
+                'full_name'    => 'Bob Tran',
+                'gender'       => 'Male',
+                'dob'          => '1998-07-22',
+                'phone'        => '0912345678',
+                'street'       => '45 Le Loi',
+                'postal'       => '700000',
+                'summary'      => 'Finance graduate with strong analytical skills and experience in financial reporting and data analysis.',
+                'skills'       => [3, 4, 5], // HTML, CSS, MySQL
+                'work_title'   => 'Financial Analyst Intern',
+                'work_company' => 'Finance Corp',
+            ],
+            [
+                'full_name'    => 'Carol Le',
+                'gender'       => 'Female',
+                'dob'          => '2000-11-05',
+                'phone'        => '0923456789',
+                'street'       => '78 Tran Hung Dao',
+                'postal'       => '700000',
+                'summary'      => 'Creative designer with a strong eye for aesthetics and 1 year of experience in UI/UX and graphic design.',
+                'skills'       => [6, 7, 8], // React, Communication, Teamwork
+                'work_title'   => 'UI/UX Design Intern',
+                'work_company' => 'Creative Studio Y',
+            ],
+        ];
+
+        foreach ($seekerIds as $i => $seekerId) {
+            // Skip if CV already exists
+            if (DB::table('cvs')->where('user_id', $seekerId)->exists()) {
+                continue;
+            }
+
+            $profile = $seekerProfiles[$i];
+
+            // Create CV
+            $cvId = DB::table('cvs')->insertGetId([
+                'user_id'        => $seekerId,
+                'cv_category_id' => $cvCategoryId,
+                'full_name'      => $profile['full_name'],
+                'date_of_birth'  => $profile['dob'],
+                'gender'         => $profile['gender'],
+                'email'          => $seekerEmails[$i],
+                'phone_number'   => $profile['phone'],
+                'country_id'     => $countryId,
+                'city_id'        => $cityId,
+                'district_id'    => $districtIds[0],
+                'street_address' => $profile['street'],
+                'postal_code'    => $profile['postal'],
+                'summary'        => $profile['summary'],
+                'template'       => 'modern',
+                'created_at'     => now(),
+                'updated_at'     => now(),
+            ]);
+
+            // Education
+            DB::table('cv_educations')->insert([
+                'cv_id'           => $cvId,
+                'institution_id'  => $institutionId,
+                'degree_level_id' => $degreeLevelId,
+                'major_id'        => $majorId,
+                'start_year'      => 2018,
+                'end_year'        => 2022,
+                'description'     => 'Graduated with honors.',
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
+            // Work History
+            DB::table('cv_work_histories')->insert([
+                'cv_id'           => $cvId,
+                'company_name'    => $profile['work_company'],
+                'job_title'       => $profile['work_title'],
+                'job_type_id'     => $jobTypeId,
+                'industry_id'     => $industryId,
+                'start_year'      => 2022,
+                'end_year'        => null,
+                'is_present'      => true,
+                'job_description' => 'Responsible for day-to-day tasks related to ' . $profile['work_title'] . '.',
+                'created_at'      => now(),
+                'updated_at'      => now(),
+            ]);
+
+            // Certificate
+            DB::table('cv_certificates')->insert([
+                'cv_id'                   => $cvId,
+                'certificate_name_id'     => $certNameId,
+                'issuing_organization_id' => $issuingOrgId,
+                'year_issued'             => 2023,
+                'description'             => 'Passed with high score.',
+                'created_at'              => now(),
+                'updated_at'              => now(),
+            ]);
+
+            // Skills (3 per user, unique)
+            $usedSkills = [];
+            foreach ($profile['skills'] as $skillIdx) {
+                $skillId = $skillIds[$skillIdx];
+                if (!in_array($skillId, $usedSkills)) {
+                    DB::table('cv_skills')->insert([
+                        'cv_id'               => $cvId,
+                        'skill_id'            => $skillId,
+                        'proficiency_level_id'=> $proficiencyLevelId,
+                        'created_at'          => now(),
+                        'updated_at'          => now(),
+                    ]);
+                    $usedSkills[] = $skillId;
+                }
+            }
+        }
+
+        // ── 8. Job Applications (each user applies to 3 different jobs) ───────
+        $allJobIds = DB::table('jobs')->where('status', 1)->pluck('id', 'user_id');
+        $allJobs   = DB::table('jobs')->where('status', 1)->get();
+
+        foreach ($seekerIds as $seekerId) {
+            $applied = 0;
+            foreach ($allJobs->shuffle() as $job) {
+                // Don't apply to own jobs (seekers have no jobs, but good practice)
+                if ($job->user_id == $seekerId) continue;
+                // Don't apply twice
+                if (DB::table('job_applications')->where(['user_id' => $seekerId, 'job_id' => $job->id])->exists()) continue;
+
+                DB::table('job_applications')->insert([
+                    'user_id'      => $seekerId,
+                    'job_id'       => $job->id,
+                    'employer_id'  => $job->user_id,
+                    'applied_date' => now(),
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+
+                $applied++;
+                if ($applied >= 3) break;
+            }
+        }
+
         $this->command->info('✅  Demo data seeded successfully!');
-        $this->command->info('   Employers : techvision@demo.com | finserve@demo.com | creativehub@demo.com  (password: password123)');
+        $this->command->info('   Employers  : techvision@demo.com | finserve@demo.com | creativehub@demo.com  (password: password123)');
         $this->command->info('   Job-seekers: alice@demo.com | bob@demo.com | carol@demo.com  (password: password123)');
+        $this->command->info('   Each seeker has a full CV + 3 job applications.');
     }
 }
