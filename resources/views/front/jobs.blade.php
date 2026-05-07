@@ -27,8 +27,39 @@
                     </div>
 
                     <div class="mb-4">
-                        <h2>Location</h2>
-                        <input value="{{ Request::get('location') }}" type="text" name="location" id="location" placeholder="Location" class="form-control">
+                        <h2>Country</h2>
+                        <select name="country_id" id="country_id" class="form-control">
+                            <option value="">Select Country</option>
+                            @foreach($countries as $country)
+                                <option value="{{ $country->id }}" {{ Request::get('country_id') == $country->id ? 'selected' : '' }}>
+                                    {{ $country->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <h2>City / Province</h2>
+                        <select name="city_id" id="city_id" class="form-control">
+                            <option value="">Select City</option>
+                            @foreach($cities as $city)
+                                <option value="{{ $city->id }}" {{ Request::get('city_id') == $city->id ? 'selected' : '' }}>
+                                    {{ $city->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <h2>District</h2>
+                        <select name="district_id" id="district_id" class="form-control">
+                            <option value="">Select District</option>
+                            @foreach($districts as $district)
+                                <option value="{{ $district->id }}" {{ Request::get('district_id') == $district->id ? 'selected' : '' }}>
+                                    {{ $district->name }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div class="mb-4">
@@ -159,43 +190,26 @@
 
         var url = '{{ route("jobs") }}?';
 
-        var keyword = $("#keyword").val();
-        var location = $("#location").val();
-        var category = $("#category").val();
-        var experience = $("#experience").val();
-        var sort    = $("#sort").val();
-        var checkedJobTypes = $("input:checkbox[name='job_type']:checked").map(function(){
-    return $(this).val();
-}).get();
-        // job type
+        var keyword     = $("#keyword").val();
+        var country_id  = $("#country_id").val();
+        var city_id     = $("#city_id").val();
+        var district_id = $("#district_id").val();
+        var category    = $("#category").val();
+        var experience  = $("#experience").val();
+        var sort        = $("#sort").val();
+
         var jobTypes = [];
         $("input[name='job_type[]']:checked").each(function(){
             jobTypes.push($(this).val());
         });
 
-        if (keyword != "") {
-            url += '&keyword=' + keyword;
-        }
-
-        if (location != "") {
-            url += '&location=' + location;
-        }
-
-        if (category != "") {
-            url += '&category=' + category;
-        }
-
-        if (jobTypes.length > 0) {
-            url += '&jobType=' + jobTypes.join(',');
-        }
-
-        if (experience != "") {
-            url += '&experience=' + experience;
-        }
-        // If user has checked job types
-if (checkedJobTypes.length > 0) {
-    url += '&jobType=' + checkedJobTypes;
-}
+        if (keyword != "")     { url += '&keyword='     + keyword; }
+        if (country_id != "")  { url += '&country_id='  + country_id; }
+        if (city_id != "")     { url += '&city_id='     + city_id; }
+        if (district_id != "") { url += '&district_id=' + district_id; }
+        if (category != "")    { url += '&category='    + category; }
+        if (jobTypes.length > 0) { url += '&jobType=' + jobTypes.join(','); }
+        if (experience != "")  { url += '&experience='  + experience; }
         url += '&sort=' + sort;
         window.location.href = url;
 

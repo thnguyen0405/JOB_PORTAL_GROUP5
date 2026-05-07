@@ -8,6 +8,9 @@ use App\Models\JobType;
 use App\Models\Job;
 use App\Models\JobApplication;
 use App\Models\User;
+use App\Models\Country;
+use App\Models\City;
+use App\Models\District;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\JobNotificationEmail;
@@ -18,6 +21,9 @@ class JobsController extends Controller
     {
         $categories = Category::where('status',1)->get();
         $jobTypes = JobType::where('status',1)->get();
+        $countries = Country::orderBy('name')->get();
+        $cities = City::orderBy('name')->get();
+        $districts = District::orderBy('name')->get();
 
         $jobs = Job::where('status',1);
 
@@ -28,8 +34,16 @@ class JobsController extends Controller
             });
         }
 
-        if (!empty($request->location)) {
-            $jobs = $jobs->where('location', 'like', '%' . $request->location . '%');
+        if (!empty($request->country_id)) {
+            $jobs = $jobs->where('country_id', $request->country_id);
+        }
+
+        if (!empty($request->city_id)) {
+            $jobs = $jobs->where('city_id', $request->city_id);
+        }
+
+        if (!empty($request->district_id)) {
+            $jobs = $jobs->where('district_id', $request->district_id);
         }
 
         if (!empty($request->category)) {
@@ -58,9 +72,12 @@ class JobsController extends Controller
 
         return view('front.jobs', [
             'categories' => $categories,
-            'jobTypes' => $jobTypes,
-            'jobs' => $jobs,
+            'jobTypes'   => $jobTypes,
+            'jobs'       => $jobs,
             'jobTypeArray' => $jobTypeArray,
+            'countries'  => $countries,
+            'cities'     => $cities,
+            'districts'  => $districts,
         ]);
     }
 
