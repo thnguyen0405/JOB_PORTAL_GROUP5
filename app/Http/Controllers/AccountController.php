@@ -274,6 +274,7 @@ $job->location = trim(
 
         $jobs = Job::where('user_id', Auth::user()->id)
             ->with('jobType')
+            ->withCount('applications')
             ->orderBy('created_at', 'DESC')
             ->paginate(10);
 

@@ -56,7 +56,10 @@
 
                                                 <td>{{ \Carbon\Carbon::parse($job->created_at)->format('d M, Y') }}</td>
 
-                                                <td>0 Applications</td>
+                                                <td>
+                                                    {{ $job->applications_count }}
+                                                    {{ $job->applications_count == 1 ? 'Application' : 'Applications' }}
+                                                </td>
 
                                                 <td>
                                                     @if($job->status == 1)
