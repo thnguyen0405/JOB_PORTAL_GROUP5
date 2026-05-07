@@ -42,7 +42,7 @@
                                     <label class="mb-2">Category <span class="req">*</span></label>
                                     <select name="category" id="category" class="form-control">
                                         <option value="">Select a Category</option>
-                                        @if ($categories->isNotEmpty())
+                                        @if(isset($categories) && $categories->isNotEmpty())
                                             @foreach ($categories as $category)
                                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                                             @endforeach
@@ -57,7 +57,7 @@
                                     <label class="mb-2">Job Type <span class="req">*</span></label>
                                     <select name="jobType" id="jobType" class="form-control">
                                         <option value="">Select Job Type</option>
-                                        @if($job_types->isNotEmpty())
+                                        @if(isset($job_types) && $job_types->isNotEmpty())
                                             @foreach($job_types as $job_type)
                                                 <option value="{{ $job_type->id }}">{{ $job_type->name }}</option>
                                             @endforeach
@@ -219,7 +219,7 @@
                         </div>
 
                         <div class="card-footer p-4">
-                            <button type="submit" class="btn btn-primary">Save Job</button>
+                            <button type="submit" class="btn btn-primary" id="saveJobBtn">Save Job</button>
                         </div>
                     </div>
                 </form>
@@ -291,7 +291,7 @@ $(document).ready(function () {
         ];
 
         fields.forEach(function(field) {
-            if (errors[field]) {
+            if (errors && errors[field]) {
                 showError(field, errors[field][0]);
             } else {
                 clearError(field);
@@ -302,7 +302,9 @@ $(document).ready(function () {
     $("#createJobForm").submit(function(e) {
         e.preventDefault();
 
-        $("button[type='submit']").prop('disabled', true);
+        clearAllErrors();
+
+        $("#saveJobBtn").prop('disabled', true).text('Saving...');
 
         $.ajax({
             url: '{{ route("account.saveJob") }}',
@@ -311,7 +313,7 @@ $(document).ready(function () {
             data: $("#createJobForm").serialize(),
 
             success: function(response) {
-                $("button[type='submit']").prop('disabled', false);
+                $("#saveJobBtn").prop('disabled', false).text('Save Job');
 
                 if (response.status === true) {
                     clearAllErrors();
@@ -322,9 +324,22 @@ $(document).ready(function () {
             },
 
             error: function(xhr) {
-                $("button[type='submit']").prop('disabled', false);
-                console.log(xhr.responseText);
-                alert('Something went wrong. Please check your form and try again.');
+                $("#saveJobBtn").prop('disabled', false).text('Save Job');
+
+                console.log("Status:", xhr.status);
+                console.log("Response:", xhr.responseText);
+
+                if (xhr.status === 419) {
+                    alert("CSRF token expired. Please refresh the page and try again.");
+                    return;
+                }
+
+                if (xhr.status === 500) {
+                    alert("Server error 500. Please check your Laravel terminal. It may be a missing database column or controller issue.");
+                    return;
+                }
+
+                alert("Error " + xhr.status + ". Please check browser console and Laravel terminal.");
             }
         });
     });
