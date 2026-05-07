@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use App\Models\Country;
+use App\Models\City;
+use App\Models\District;
 
 class AccountController extends Controller
 {
@@ -159,19 +162,25 @@ class AccountController extends Controller
     }
 
     public function createJob()
-    {
-        if (!in_array(Auth::user()->role, ['employer', 'admin'])) {
-            abort(403, 'Only employers can post jobs.');
-        }
-
-        $categories = Category::orderBy('name', 'ASC')->where('status', 1)->get();
-        $jobTypes = JobType::orderBy('name', 'ASC')->where('status', 1)->get();
-
-        return view('front.account.job.create', [
-            'categories' => $categories,
-            'job_types' => $jobTypes
-        ]);
+{
+    if (!in_array(Auth::user()->role, ['employer', 'admin'])) {
+        abort(403, 'Only employers can post jobs.');
     }
+
+    $categories = Category::orderBy('name', 'ASC')->where('status', 1)->get();
+    $jobTypes = JobType::orderBy('name', 'ASC')->where('status', 1)->get();
+    $countries = Country::orderBy('name')->get();
+    $cities = City::orderBy('name')->get();
+    $districts = District::orderBy('name')->get();
+
+    return view('front.account.job.create', [
+        'categories' => $categories,
+        'job_types' => $jobTypes,
+        'countries' => $countries,
+        'cities' => $cities,
+        'districts' => $districts,
+    ]);
+}
 
     public function saveJob(Request $request)
     {
@@ -180,14 +189,22 @@ class AccountController extends Controller
         }
 
         $rules = [
-            'title' => 'required|min:5|max:200',
-            'category' => 'required',
-            'jobType' => 'required',
-            'vacancy' => 'required|integer',
-            'location' => 'required|max:50',
-            'description' => 'required',
-            'company_name' => 'required|min:3|max:75',
-        ];
+    'title' => 'required|min:5|max:200',
+    'category' => 'required',
+    'jobType' => 'required',
+    'vacancy' => 'required|integer',
+
+    'country_id' => 'required|exists:countries,id',
+    'city_id' => 'required|exists:cities,id',
+    'district_id' => 'nullable|exists:districts,id',
+    'work_arrangement' => 'required|in:onsite,remote,hybrid',
+
+    'salary_range' => 'required',
+    'salary_type' => 'required|in:gross,net',
+
+    'description' => 'required',
+    'company_name' => 'required|min:3|max:75',
+];
 
         $validator = Validator::make($request->all(), $rules);
 
@@ -198,8 +215,21 @@ class AccountController extends Controller
             $job->job_type_id = $request->jobType;
             $job->user_id = Auth::user()->id;
             $job->vacancy = $request->vacancy;
-            $job->salary = $request->salary;
-            $job->location = $request->location;
+            $job->salary_range = $request->salary_range;
+$job->salary_type = $request->salary_type;
+
+$job->country_id = $request->country_id;
+$job->city_id = $request->city_id;
+$job->district_id = $request->district_id;
+$job->work_arrangement = $request->work_arrangement;
+
+// Optional old columns for backward compatibility
+$job->salary = $request->salary_range;
+$job->location = trim(
+    ($request->district_id ? optional(District::find($request->district_id))->name . ', ' : '') .
+    optional(City::find($request->city_id))->name . ', ' .
+    optional(Country::find($request->country_id))->name
+);
             $job->description = $request->description;
             $job->benefits = $request->benefits;
             $job->responsibility = $request->responsibility;
